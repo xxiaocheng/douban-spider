@@ -3,7 +3,7 @@ BASE_API='https://api.douban.com/%s'
 
 class User(object):
 
-    def __init__(self,uid):
+    def __init__(self,uid=''):
         self.uid=uid
 
     def get_me(self):
