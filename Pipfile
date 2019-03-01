@@ -8,6 +8,8 @@ verify_ssl = true
 [packages]
 requests = "*"
 scrapy = "*"
+pymongo = "*"
+redis = "*"
 
 [requires]
 python_version = "3.6"

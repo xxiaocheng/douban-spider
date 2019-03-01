@@ -16,7 +16,7 @@ NEWSPIDER_MODULE = 'douban.spiders'
 
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
-#USER_AGENT = 'douban (+http://www.yourdomain.com)'
+USER_AGENT = 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:65.0) Gecko/20100101 Firefox/65.0'
 
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = True
@@ -52,9 +52,9 @@ ROBOTSTXT_OBEY = True
 
 # Enable or disable downloader middlewares
 # See https://doc.scrapy.org/en/latest/topics/downloader-middleware.html
-#DOWNLOADER_MIDDLEWARES = {
-#    'douban.middlewares.DoubanDownloaderMiddleware': 543,
-#}
+DOWNLOADER_MIDDLEWARES = {
+   'douban.middlewares.DoubanDownloaderMiddleware': 543,
+}
 
 # Enable or disable extensions
 # See https://doc.scrapy.org/en/latest/topics/extensions.html
@@ -64,9 +64,10 @@ ROBOTSTXT_OBEY = True
 
 # Configure item pipelines
 # See https://doc.scrapy.org/en/latest/topics/item-pipeline.html
-#ITEM_PIPELINES = {
-#    'douban.pipelines.DoubanPipeline': 300,
-#}
+ITEM_PIPELINES = {
+   'douban.pipelines.MongoPipeline': 300,
+   'douban.piplines.InsertRedisPipeline':400,
+}
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://doc.scrapy.org/en/latest/topics/autothrottle.html
@@ -88,3 +89,15 @@ ROBOTSTXT_OBEY = True
 #HTTPCACHE_DIR = 'httpcache'
 #HTTPCACHE_IGNORE_HTTP_CODES = []
 #HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
+
+
+# MongoPipeline settings
+MONGO_URI='127.0.0.1'
+MONGO_DATABASE='douban'
+
+
+# Redis settings
+#REDIS_HOST='127.0.0.1'
+#REDIS_PORT='6379'
+#REDIS_PASSWORD=''
+#REDIS_DB='0' 

@@ -6,7 +6,9 @@
 # https://doc.scrapy.org/en/latest/topics/spider-middleware.html
 
 from scrapy import signals
-
+from scrapy.exceptions import IgnoreRequest
+import logging
+import redis
 
 class DoubanSpiderMiddleware(object):
     # Not all methods need to be defined. If a method is not defined,
@@ -61,10 +63,27 @@ class DoubanDownloaderMiddleware(object):
     # scrapy acts as if the downloader middleware does not modify the
     # passed objects.
 
+    def __init__(self,redis_host,redis_port,redis_password,redis_db):
+        self.redis_host=redis_host
+        self.redis_port=redis_port
+        self.redis_password=redis_password
+        self.db=redis_db
+
+        self.client=redis.Redis(
+            host=self.redis_host,
+            port=self.redis_port,
+            password=self.redis_password
+        )
+
     @classmethod
     def from_crawler(cls, crawler):
         # This method is used by Scrapy to create your spiders.
-        s = cls()
+        s = cls(
+            redis_host=crawler.settings.get('REDIS_HOST','127.0.0.1'),
+            redis_port=crawler.settings.get('REDIS_PORT','6379'),
+            redis_password=crawler.settings.get('REDIS_PASSWORD'),
+            redis_db=crawler.settings.get('REDIS_DB','0')
+        )
         crawler.signals.connect(s.spider_opened, signal=signals.spider_opened)
         return s
 
@@ -78,7 +97,38 @@ class DoubanDownloaderMiddleware(object):
         # - or return a Request object
         # - or raise IgnoreRequest: process_exception() methods of
         #   installed downloader middleware will be called
-        return None
+        """判断将要下载的页面是否已经请过，通过url中唯一标识符是否已经在redis set中来判断
+        """
+        request_url=str(request.url)
+        splited_url=request_url.split('/')
+        if request_url[-1]=='/':
+            id=splited_url[-2]
+            cate=splited_url[-3]
+            if cate=='subject':
+                redis_key='Moive'.lower()
+            else:
+                redis_key='Celebrity'.lower()
+        else:
+            if 'people' in request_url:
+                id =splited_url[-2]
+                redis_key='Rating'.lower()
+            else:
+                id=splited_url[-1]
+                cate=splited_url[-2]
+                if cate=='subject':
+                    redis_key='Moive'.lower()
+                else:
+                    redis_key='Celebrity'.lower()
+        
+        # 判断url 中唯一标识符是否已经在redis中
+        if self.client.sadd(redis_key,id):
+            return request
+        else:
+            logging.debug("IgnoreRequest : %s" % request.url)
+            raise IgnoreRequest("IgnoreRequest : %s" % request.url)
+
+
+        #return None
 
     def process_response(self, request, response, spider):
         # Called with the response returned from the downloader.
