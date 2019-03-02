@@ -15,7 +15,7 @@ class MoivesSpider(scrapy.Spider):
     name = 'moives'
 
     def start_requests(self):
-        uid='zhouxiaopo'
+        uid='3514514'
         user_url=UserMoivesUrl(uid)
         start_url=user_url.get_collect_url()
 

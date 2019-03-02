@@ -9,8 +9,10 @@ from scrapy import signals
 from scrapy.exceptions import IgnoreRequest
 import logging
 import redis
-from time import sleep
+from time import sleep,time
 from douban.route_dial_up import redial
+
+retail_time=0.0
 
 class DoubanSpiderMiddleware(object):
     # Not all methods need to be defined. If a method is not defined,
@@ -83,11 +85,9 @@ class DoubanDownloaderMiddleware(object):
         # - or return a Request object
         # - or raise IgnoreRequest: process_exception() methods of
         #   installed downloader middleware will be called
-        if 'sorry' in request.url or 'sec.douban.com' in request.url:
-            redial()
-            sleep(35)
-            raise IgnoreRequest("IgnoreRequest : %s" % request.url)
-        return None
+
+        
+         return None
 
     def process_response(self, request, response, spider):
         # Called with the response returned from the downloader.
@@ -96,7 +96,16 @@ class DoubanDownloaderMiddleware(object):
         # - return a Response object
         # - return a Request object
         # - or raise IgnoreRequest
-        
+        global retail_time
+        if response.status in [403,302,400,404]:
+            if time()-retail_time<200:
+                return response
+            else:
+                redial()
+                retail_time=time()
+                sleep(33)
+        else:
+            return response
 
         return response
 

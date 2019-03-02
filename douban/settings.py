@@ -104,3 +104,6 @@ MONGO_DATABASE='douban'
 #REDIS_PORT='6379'
 #REDIS_PASSWORD=''
 #REDIS_DB='0' 
+
+# redirct settings
+REDIRECT_ENABLED = False
