@@ -6,17 +6,17 @@ import logging
 import scrapy
 
 from douban.douban_api import Subject, User
-from douban.items import CelebrityItem, MoiveItem, RatingItem
-from douban.user_moives_profile import UserMoivesUrl
+from douban.items import CelebrityItem, MovieItem, RatingItem
+from douban.user_movies_profile import UserMoviesUrl
 
 loger=logging.getLogger()
 
-class MoivesSpider(scrapy.Spider):
-    name = 'moives'
+class MoviesSpider(scrapy.Spider):
+    name = 'movies'
 
     def start_requests(self):
         uid='3514514'
-        user_url=UserMoivesUrl(uid)
+        user_url=UserMoviesUrl(uid)
         start_url=user_url.get_collect_url()
 
         yield scrapy.Request(url=start_url,callback=self.parse_rating)
@@ -45,7 +45,7 @@ class MoivesSpider(scrapy.Spider):
         for item_div in item_div_list:  
             html_str=item_div.get()
             url_list=re_url_compiled.findall(html_str)
-            moive_id=url_list[0].split('/')[-2]  # 获取moive id
+            movie_id=url_list[0].split('/')[-2]  # 获取movie id
             try:
                 rating=re_rating_compiled.findall(html_str)[0] #获取 评分数据
             except IndexError:
@@ -63,14 +63,14 @@ class MoivesSpider(scrapy.Spider):
 
             item=RatingItem()
             item['id']=uid
-            item['moive_id']=moive_id
+            item['movie_id']=movie_id
             item['rating']=rating
             item['timestamp']=timestamp
             item['comment']=comment
             item['tags']=tags
 
-            moive=Subject(moive_id)
-            yield scrapy.Request(url=moive.get_subject(),callback=self.parse_moive)
+            movie=Subject(movie_id)
+            yield scrapy.Request(url=movie.get_subject(),callback=self.parse_movie)
 
             yield item
         yield scrapy.Request(url=user.get_following(page=1,count=10000),callback=self.parse_followings)
@@ -86,15 +86,15 @@ class MoivesSpider(scrapy.Spider):
         except:
             logging.error("Can't parse this response to json ,url:%s !" % response.url)
         for t in json_response:
-            user_url=UserMoivesUrl(t['id'])
+            user_url=UserMoviesUrl(t['id'])
             yield scrapy.Request(url=user_url.get_collect_url(),callback=self.parse_rating)
 
-    def parse_moive(self,response):
+    def parse_movie(self,response):
         try:
             json_response=json.loads(response.body_as_unicode())
         except:
             logging.error("Can't parse this response to json ,url:%s !" % response.url)
-        item=MoiveItem()
+        item=MovieItem()
         attributes=[
             'id',
             'title',

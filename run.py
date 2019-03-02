@@ -1,2 +1,2 @@
-shell_str='scrapy crawl moives  -s JOBDIR=crawsstatus/doubanjob_1'
+shell_str='scrapy crawl movies  -s JOBDIR=crawsstatus/doubanjob_1'
 

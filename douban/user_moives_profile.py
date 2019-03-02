@@ -1,7 +1,7 @@
 import requests
 import re
 
-class UserMoivesUrl(object):
+class UserMoviesUrl(object):
     base_url='https://movie.douban.com/people/%(user_id)s/%(type)s'
     
     def __init__(self,user_id):
@@ -31,7 +31,7 @@ def get_response_text_by_url(url):
     content=response.text
     return content
 
-def get_moives_id_one_page(movie_url):
+def get_movies_id_one_page(movie_url):
     '''返回当前页面的所有电影的唯一 id
     '''
     content = get_response_text_by_url(movie_url)
@@ -42,9 +42,9 @@ def get_moives_id_one_page(movie_url):
     #去重复
     return list(set(object_list))
 
-def get_moives_count(current_user):
+def get_movies_count(current_user):
     ''' 返回用户看过，想看 ，在看的电影（电视剧数量）
-    type(current_user)=UserMoivesUrl
+    type(current_user)=UserMoviesUrl
     '''
     index_content=get_response_text_by_url(current_user.get_index_url())
     re_str='target\=\"\_self\"\>([0-9]+)部'
@@ -55,37 +55,37 @@ def get_moives_count(current_user):
 
     return result_list
 
-def get_all_page_moive_id(first_url,count):
-    '''获取所有页面的moive id
+def get_all_page_movie_id(first_url,count):
+    '''获取所有页面的movie id
     first_url: 第一页url
     count : 总个数
     return type: list
     '''
     first_url=first_url+'?start=%s'
-    moives_id=[]
+    movies_id=[]
     for i in range(0,int(count),15):
-        moives_id+=get_moives_id_one_page(first_url % str(i))
-    return moives_id
+        movies_id+=get_movies_id_one_page(first_url % str(i))
+    return movies_id
 
-def get_user_profile_moives(user_id=None):
+def get_user_profile_movies(user_id=None):
     '''
     返回三个列表，分别包含看过，想看,  在看的电影id
     '''
     if user_id==None:
         return [],[],[]
-    current_user=UserMoivesUrl(user_id)
+    current_user=UserMoviesUrl(user_id)
 
-    count_list=get_moives_count(current_user)
-    collect_moives_count=count_list[0]
-    wish_moives_count=count_list[1]
-    do_moives_count=count_list[2]
+    count_list=get_movies_count(current_user)
+    collect_movies_count=count_list[0]
+    wish_movies_count=count_list[1]
+    do_movies_count=count_list[2]
 
-    collect_moives=get_all_page_moive_id(current_user.get_collect_url(),collect_moives_count)
-    wish_moives=get_all_page_moive_id(current_user.get_wish_url(),wish_moives_count)
-    do_moives=get_all_page_moive_id(current_user.get_do_url(),do_moives_count)
+    collect_movies=get_all_page_movie_id(current_user.get_collect_url(),collect_movies_count)
+    wish_movies=get_all_page_movie_id(current_user.get_wish_url(),wish_movies_count)
+    do_movies=get_all_page_movie_id(current_user.get_do_url(),do_movies_count)
 
-    # assert len(collect_moives)==collect_moives_count
-    # assert len(wish_moives)==wish_moives_count
-    # assert len(do_moives)==do_moives_count
+    # assert len(collect_movies)==collect_movies_count
+    # assert len(wish_movies)==wish_movies_count
+    # assert len(do_movies)==do_movies_count
 
-    return collect_moives,wish_moives,do_moives
+    return collect_movies,wish_movies,do_movies

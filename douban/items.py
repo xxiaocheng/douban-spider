@@ -14,10 +14,10 @@ class DoubanItem(scrapy.Item):
     pass
 
 
-class MoiveItem(scrapy.Item):
+class MovieItem(scrapy.Item):
     id=scrapy.Field()  # 豆瓣 🆔
     title=scrapy.Field()    # 标题
-    subtype=scrapy.Field()  # 子类型，moive 或 tv    
+    subtype=scrapy.Field()  # 子类型，movie 或 tv    
     wish_count=scrapy.Field() # 想看的数目
     do_count=scrapy.Field() # 在看的数量
     collect_count=scrapy.Field()  # 看过的数量
@@ -50,7 +50,7 @@ class CelebrityItem(scrapy.Item):
 
 class RatingItem(scrapy.Item):
     id=scrapy.Field()  # 用户id
-    moive_id=scrapy.Field()  #被评价的电影id
+    movie_id=scrapy.Field()  #被评价的电影id
     rating=scrapy.Field() # 评分
     timestamp=scrapy.Field() # 时间戳 
     comment=scrapy.Field()# 评论数据

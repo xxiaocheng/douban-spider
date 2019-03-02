@@ -1,2 +1,2 @@
 # douban-spider
-douban moives spider and api
+douban movies spider and api
