@@ -16,10 +16,10 @@ NEWSPIDER_MODULE = 'douban.spiders'
 
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
-USER_AGENT = 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:65.0) Gecko/20100101 Firefox/65.0'
+#USER_AGENT = 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:65.0) Gecko/20100101 Firefox/65.0'
 
 # Obey robots.txt rules
-ROBOTSTXT_OBEY = True
+ROBOTSTXT_OBEY = False
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
 #CONCURRENT_REQUESTS = 32
@@ -52,8 +52,11 @@ ROBOTSTXT_OBEY = True
 
 # Enable or disable downloader middlewares
 # See https://doc.scrapy.org/en/latest/topics/downloader-middleware.html
+#'douban.middlewares.DoubanDownloaderMiddleware': 543,
 DOWNLOADER_MIDDLEWARES = {
-   'douban.middlewares.DoubanDownloaderMiddleware': 543,
+    'scrapy.downloadermiddlewares.useragent.UserAgentMiddleware': None,
+    'scrapy_fake_useragent.middleware.RandomUserAgentMiddleware': 400,
+    'douban.middlewares.DoubanDownloaderMiddleware': 300,
 }
 
 # Enable or disable extensions
@@ -66,7 +69,7 @@ DOWNLOADER_MIDDLEWARES = {
 # See https://doc.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
    'douban.pipelines.MongoPipeline': 300,
-   'douban.piplines.InsertRedisPipeline':400,
+   'douban.pipelines.InsertRedisPipeline':None,
 }
 
 # Enable and configure the AutoThrottle extension (disabled by default)

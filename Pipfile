@@ -10,6 +10,7 @@ requests = "*"
 scrapy = "*"
 pymongo = "*"
 redis = "*"
+scrapy-fake-useragent = "*"
 
 [requires]
 python_version = "3.6"

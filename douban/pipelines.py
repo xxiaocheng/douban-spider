@@ -6,7 +6,9 @@
 # See: https://doc.scrapy.org/en/latest/topics/item-pipeline.html
 import pymongo
 import redis
-from scrapy import log
+import logging
+
+logger=logging.getLogger()
 
 class DoubanPipeline(object):
     def process_item(self, item, spider):
@@ -45,7 +47,7 @@ class MongoPipeline(object):
         self.db[collection_name].update({'id': item['id']},dict(item),True)
         
         # print logs on the console
-        log.msg('Item added to MongoDB database!',level=log.DEBUG,spider=spider) 
+        logger.debug('Item added to MongoDB database!')
         return item
 
 
@@ -80,6 +82,5 @@ class InsertRedisPipeline(object):
     def process_item(self,item,spider):
         redis_key=type(item).__name__.lower()
         self.client.sadd(redis_key,item['id'])
-        log.msg('Ignore add the item id to redis!',level=log.DEBUG,spider=spider)
-
+        logger.debug('Item id added to redis!')
         return item

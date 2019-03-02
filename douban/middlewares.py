@@ -100,29 +100,35 @@ class DoubanDownloaderMiddleware(object):
         """判断将要下载的页面是否已经请过，通过url中唯一标识符是否已经在redis set中来判断
         """
         request_url=str(request.url)
+        # 判断是否为用户看过的电影 url，避免只抓取到一页数据
+        if 'collect' in request_url and '?' in request_url:
+            return  None
+
+        if '?' in request_url:
+            request_url=request_url.split('?')[0]
         splited_url=request_url.split('/')
         if request_url[-1]=='/':
             id=splited_url[-2]
             cate=splited_url[-3]
             if cate=='subject':
-                redis_key='Moive'.lower()
+                redis_key='MoiveItem'.lower()
             else:
-                redis_key='Celebrity'.lower()
+                redis_key='CelebrityItem'.lower()
         else:
             if 'people' in request_url:
                 id =splited_url[-2]
-                redis_key='Rating'.lower()
+                redis_key='RatingItem'.lower()
             else:
                 id=splited_url[-1]
                 cate=splited_url[-2]
                 if cate=='subject':
-                    redis_key='Moive'.lower()
+                    redis_key='MoiveItem'.lower()
                 else:
-                    redis_key='Celebrity'.lower()
+                    redis_key='CelebrityItem'.lower()
         
         # 判断url 中唯一标识符是否已经在redis中
         if self.client.sadd(redis_key,id):
-            return request
+            return None
         else:
             logging.debug("IgnoreRequest : %s" % request.url)
             raise IgnoreRequest("IgnoreRequest : %s" % request.url)

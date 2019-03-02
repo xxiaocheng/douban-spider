@@ -1,13 +1,15 @@
 # -*- coding: utf-8 -*-
-import scrapy
-import re
 import json
+import re
+import logging
 
-from douban.items import MoiveItem,CelebrityItem,RatingItem
+import scrapy
 
+from douban.douban_api import Subject, User
+from douban.items import CelebrityItem, MoiveItem, RatingItem
 from douban.user_moives_profile import UserMoivesUrl
-from douban_api import User,Subject
 
+loger=logging.getLogger()
 
 class MoivesSpider(scrapy.Spider):
     name = 'moives'
@@ -17,7 +19,7 @@ class MoivesSpider(scrapy.Spider):
         user_url=UserMoivesUrl(uid)
         start_url=user_url.get_collect_url()
 
-        yield scrapy.Request(url=start_url,callable=self.parse_rating)
+        yield scrapy.Request(url=start_url,callback=self.parse_rating)
 
     
     def parse_rating(self,response):
@@ -26,7 +28,6 @@ class MoivesSpider(scrapy.Spider):
 
         #获取该用户粉丝 继续爬取
         user=User(uid)
-        yield scrapy.Request(url=user.get_following(page=1,count=10000),callback=self.parse_followings)
 
         # 准备正则表达式
         re_url='href\=\".*?\"'
@@ -41,14 +42,24 @@ class MoivesSpider(scrapy.Spider):
         re_tags_compiled=re.compile(re_tags)
 
         item_div_list=response.xpath('//*[@id="content"]/div[2]/div[1]/div[2]/div')
-        for item_div in item_div_list:
+        for item_div in item_div_list:  
             html_str=item_div.get()
             url_list=re_url_compiled.findall(html_str)
-            moive_id=url_list[0].split('/')[-2]  # 获取moive 🆔
-            rating=re_rating_compiled.findall(html_str)[0] #获取 评分数据
+            moive_id=url_list[0].split('/')[-2]  # 获取moive id
+            try:
+                rating=re_rating_compiled.findall(html_str)[0] #获取 评分数据
+            except IndexError:
+                rating=''
+
             timestamp=re_timestamp_compiled.findall(html_str)[0] # 获取评分时间
-            comment=re_comment_compiled.findall(html_str)[0]
-            tags=re_tags_compiled.findall(html_str)[0].split(':')[1].split()
+            try:
+                comment=re_comment_compiled.findall(html_str)[0]
+            except IndexError:
+                comment=''
+            try:    
+                tags=re_tags_compiled.findall(html_str)[0].split(':')[1].split()
+            except:
+                tags=''
 
             item=RatingItem()
             item['id']=uid
@@ -58,10 +69,11 @@ class MoivesSpider(scrapy.Spider):
             item['comment']=comment
             item['tags']=tags
 
-            moive=Subject()
+            moive=Subject(moive_id)
             yield scrapy.Request(url=moive.get_subject(),callback=self.parse_moive)
 
             yield item
+        yield scrapy.Request(url=user.get_following(page=1,count=10000),callback=self.parse_followings)
 
         next_page=response.xpath('//*[@id="content"]/div[2]/div[1]/div[3]/span[4]/a/@href').get()
         if next_page is not None:
@@ -72,16 +84,16 @@ class MoivesSpider(scrapy.Spider):
         try:
             json_response=json.loads(response.body_as_unicode())
         except:
-            scrapy.log.msg("Can't parse this response to json ,url:%s !" % response.url,level=scrapy.log.ERROR,spider=self)
+            logging.error("Can't parse this response to json ,url:%s !" % response.url)
         for t in json_response:
             user_url=UserMoivesUrl(t['id'])
-            yield scrapy.Request(url=user_url.get_collect_url(),callable=self.parse_rating)
+            yield scrapy.Request(url=user_url.get_collect_url(),callback=self.parse_rating)
 
     def parse_moive(self,response):
         try:
             json_response=json.loads(response.body_as_unicode())
         except:
-            scrapy.log.msg("Can't parse this response to json ,url:%s !" % response.url,level=scrapy.log.ERROR,spider=self)
+            logging.error("Can't parse this response to json ,url:%s !" % response.url)
         item=MoiveItem()
         attributes=[
             'id',
@@ -129,7 +141,7 @@ class MoivesSpider(scrapy.Spider):
         try:
             json_response=json.loads(response.body_as_unicode())
         except:
-            scrapy.log.msg("Can't parse this response to json ,url:%s !" % response.url,level=scrapy.log.ERROR,spider=self)
+            logging.error("Can't parse this response to json ,url:%s !" % response.url)
 
         item=CelebrityItem()
         item['id']=json_response['id']
@@ -139,7 +151,6 @@ class MoivesSpider(scrapy.Spider):
         item['avatars']=json_response['avatars']
         item['aka']=json_response['aka']
         item['name_en']=json_response['name_en']
-        item['born_place']=json['born_place']
+        item['born_place']=json_response['born_place']
 
         yield item
-        
